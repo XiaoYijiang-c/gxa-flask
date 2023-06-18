@@ -30,6 +30,7 @@ class Organizations(Resource):
     # @jwt_required
     def get(self):
         """List all registered organizations"""
+        print('列出所有组织')
         return get_all_organizations()
 
     @ns.expect(_organizationIn, validate=True)
@@ -37,6 +38,7 @@ class Organizations(Resource):
     @ns.doc('create a new organization')
     def post(self) -> Tuple[Dict[str, str], int]:
         """Creates a new Organization """
+        print('进来添加组织（或部门）')
         data = request.json
         return save_new_organization(data=data)
 

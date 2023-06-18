@@ -30,7 +30,8 @@ def draw_lines(draw, num, width, height):
         y2 = random.randint(height / 2, height)
         draw.line(((x1, y1), (x2, y2)), fill='black', width=1)
 
-
+from .. import flask_bcrypt
+from io import BytesIO
 class Auth:
     @staticmethod
     def generate_verify_code():
@@ -59,17 +60,35 @@ class Auth:
         try:
             pprint(request.cookies)
             pprint(request.json)
-            # print("获取的生成的验证码：", session['verify_code'], ":", "发送来的验证码：", request.json['verify_code'])
+            print("获取的生成的验证码：", session['verify_code'], ":", "发送来的验证码：", request.json['verify_code'])
 
-            # if session['verify_code'] != request.json['verify_code']:
-            #     response_object = {
-            #         'status': 'fail',
-            #         'message': 'verify code error',
-            #     }
-            #     Auth.generate_verify_code()
-            #     return response_object, 403
+            if session['verify_code'] != request.json['verify_code']:
+                response_object = {
+                    'status': 'fail',
+                    'message': 'verify code error',
+                }
+                image, code = Auth.generate_verify_code()
+                print('生成的图形码',code)
+                # 更新session['verify_code']的值，以防复用
+                session['verify_code'] = code
+
+                # 图片以二进制形式写入
+                buf = BytesIO()
+                image.save(buf, 'jpeg')
+                buf_str = buf.getvalue()
+                # 把buf_str作为response返回前端，并设置首部字段
+                response = make_response(buf_str)
+                response.headers['Content-Type'] = 'image/gif'
+                # 将验证码字符串储存在session中
+                pprint(request.cookies)
+                return response
+                # return response_object, 403
+
             # fetch the user data
             user = User.query.filter_by(email=data.get('email')).first()
+            print('查询到的用户',user)
+            passwd = data.get('password')
+            print('用户密码对应的散列值',flask_bcrypt.generate_password_hash(passwd).decode('utf-8'))
             if user and user.check_password(data.get('password')):
                 auth_token = create_access_token(user.id, fresh=True)
                 refresh_token = create_refresh_token(user.id)

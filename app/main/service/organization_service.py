@@ -121,10 +121,11 @@ def operate_an_organization(id, operator):
         else:
             print("日怪")
             return response_with(INVALID_INPUT_422)
-    tmp_projects, http_code = get_projects_by_organization_id(tmp_organization.id)
-    operate_projects(tmp_projects, operator)
+    # tmp_projects, http_code = get_projects_by_organization_id(tmp_organization.id)
+    # operate_projects(tmp_projects, operator)
     db.session.commit()
-    return response_with(SUCCESS_201)
+    detail = "正"+operator+"与当前组织相关的项目"
+    return response_with(SUCCESS_201,message=detail)
 
 
 def operate_organizations(organizations, operator):

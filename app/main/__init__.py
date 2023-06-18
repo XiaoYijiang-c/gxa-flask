@@ -6,6 +6,9 @@ from flask.app import Flask
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
 
+# 自曾跨域请求的解决
+from flask_cors import CORS
+cors = CORS()
 db = SQLAlchemy()
 flask_bcrypt = Bcrypt()
 jwt = JWTManager()
@@ -21,5 +24,5 @@ def create_app(config_name: str) -> Flask:
     flask_bcrypt.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
-
+    cors.init_app(app)
     return app

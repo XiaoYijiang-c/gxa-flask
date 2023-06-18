@@ -1,7 +1,7 @@
 from flask_restx import Namespace, fields
 
+####################@@@@@@@@@@@@自定义fields字段@@@@@@@@@@@@@@@@@@@@@@#######################
 CustomDate = fields.DateTime
-
 
 class CustomDate(fields.DateTime):
     '''
@@ -25,6 +25,112 @@ class CustomDate(fields.DateTime):
         else:
             raise Exception('Unsupported date format %s' % self.dt_format)
 
+class Roleout(fields.Raw):
+    def format(self, value):
+        res = ''
+        if value == 'sysadmin':
+            res = '系统管理员'
+        elif value == 'logadmin':
+            res = '日志管理员'
+        elif value == 'projectadmin':
+            res = '项目管理员'
+        else:
+            res = '客户代表'
+        return res
+# class RoleIn(fields.String):
+#     def format(self, value):
+#         res = ''
+#         if value == '系统管理员':
+#             print('进来啦')
+#             res = 'sysadmin'
+#         elif value == '日志管理员':
+#             res = 'logadmin'
+#         elif value == '项目管理员':
+#             res = 'projectadmin'
+#         else:
+#             res = 'representative'
+#         return res
+class Statusout(fields.Raw):
+    def format(self, value):
+        res = ''
+        if value == True:
+            res = '是'
+        else:
+            res = '否'
+        return res
+class StatusIn(fields.Raw):
+    def format(self, value):
+        res = ''
+        if value == '是':
+            res = True
+        else:
+            res = False
+        return res
+class Int_to_str(fields.Raw):
+    def format(self, value):
+        return str(value)
+class str_to_Int(fields.String):
+    def format(self, value):
+        res = value.isdecimal()
+        if not res:
+            raise ValueError({'error': '输入编号不是数字'})
+        return int(value)
+####################@@@@@@@@@@@@自定义fields字段@@@@@@@@@@@@@@@@@@@@@@#######################
+
+############@@@@@@@@@@@@@@@@@@@@@自定义验证字段@@@@@@@@@@@@@@@@@@@@@@@##############
+class RoleIn:
+    def __init__(self, required=False):
+        self.required = required
+
+    def __call__(self, value):
+        # 在这里进行需要的修改逻辑
+        print('进来没哦')
+        res = ''
+        if value == '系统管理员':
+            print('进来啦')
+            res = 'sysadmin'
+        elif value == '日志管理员':
+            res = 'logadmin'
+        elif value == '项目管理员':
+            res = 'projectadmin'
+        else:
+            res = 'representative'
+        modified_value = res
+        return modified_value
+
+
+def validate_sysrole(value):
+    res = ''
+    if value == '系统管理员':
+        print('进来啦')
+        res = 'sysadmin'
+    elif value == '日志管理员':
+        res = 'logadmin'
+    elif value == '项目管理员':
+        res = 'projectadmin'
+    else:
+        res = 'representative'
+    return res
+
+def validate_mobile(Phone):
+    hmd = [134,135,136,137,138,139,150,151,152,157,158,159,182,183,184,187,188,147,178,
+         130,131,132,155,156,185,186,145,176,179,133,153,180,181,189,177]#列表
+    if Phone.isnumeric():#判断Phone是否全部都是数字字符
+        if len(Phone) == 11:#判断手机号是否为11位
+            if int(Phone[0:3]) in hmd:#如果输入的手机号前三位数字在列表中，则输出"是一个有效号码"
+                return True
+            else:#如果输入的手机号前三位数字不在列表中，则输出"不是有效运营商网段"
+                raise ValueError({'error': (Phone, "不是有效运营商网段")})
+        else:#如果手机号不是11位，则输出"号码位数不对！"
+            raise ValueError({'error': (Phone, "号码位数不对！")})
+    else:#如果输入的手机号字符串不全是数字，则输出"号码必须全是数字"
+        raise ValueError({'error': (Phone, "手机号码必须全是数字")})
+import re
+def validate_email(value):
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
+        raise ValueError("Invalid email address")
+############@@@@@@@@@@@@@@@@@@@@@自定义验证字段@@@@@@@@@@@@@@@@@@@@@@@##############
+
 searchWordsIn = {
         'id': fields.Integer(required=False, description='id'),
         'partial_name': fields.String(required=False, description='name'),
@@ -33,6 +139,27 @@ searchWordsIn = {
         'modify_time_start': CustomDate(required=False, dt_format='str_time', description='like topic mentioned'),
         'modify_time_end': CustomDate(required=False, dt_format='str_time', description='like topic mentioned'),
         'status': fields.String(required=False, description='organization comments'),
+    }
+
+searchWordsInUser = {
+        'id': str_to_Int(required=False, description='id'),
+        'partial_name': fields.String(required=False, description='username'),
+        'email': fields.String(required=False, description='email'),
+        'sysrole': fields.String(required=False, description='the of user'),
+        'orgid': str_to_Int(required=False,description='organization user belonged'),
+        'createdbyuid': str_to_Int(required=False,description='users created by createduid'),
+        'freezedbyuid': str_to_Int(required=False,description='users freezed by freezedbyuid'),
+        'modifiedbyuid': str_to_Int(required=False,description='users mofieded by modifiedbyuid'),
+        'lockedbyuid': str_to_Int(required=False,description='users locked by lockedbyuid'),
+        'createtime': CustomDate(required=False, dt_format='str_time', description='the time of creating user'),
+        'lockedtime': CustomDate(required=False, dt_format='str_time', description='the time of locking user'),
+        'freezedtime': CustomDate(required=False, dt_format='str_time', description='the time of freezing user'),
+        'modifiedtime': CustomDate(required=False, dt_format='str_time', description='the time of freezing user'),
+        'status_freeze': fields.Boolean(required=False, description='freezed or unfreezed'),
+        'status_lock': fields.Boolean(required=False, description='locked or unlocked'),
+        'position': fields.String(required=False, description='user position'),
+        'comments': fields.String(required=False, description='comments about user'),
+        'representativeID': fields.String(required=False,description='users managed by managerID'),
     }
 
 IDsIn = {
@@ -70,6 +197,9 @@ class OrganizationDTO:
 
 class UserDTO:
     ns = Namespace('user', description='user related operations')
+
+    userIDsIn = ns.model('userIDsIn', IDsIn)
+
     userOut = ns.model('userOut', {
         'id': fields.Integer(description='user id'),
         'email': fields.String(description='user email address'),
@@ -78,9 +208,10 @@ class UserDTO:
         'wechat_num': fields.String(description='user email address'),
         'telecom_num': fields.String(description='user email address'),
         'username': fields.String(description='user username'),
-        'password': fields.String(description='user password'),
+        # 'password': fields.String(description='user password'),
         'sysrole': fields.String(description='user role'),
         'orgid': fields.Integer(description='the organization id the user belonging to'),
+        'createdbyuid': fields.Integer(description='the user id who create current user')
     })
 
     userIn = ns.model('userIn', {
@@ -93,7 +224,153 @@ class UserDTO:
         'password': fields.String(description='user password'),
         'sysrole': fields.String(description='user role'),
         'orgid': fields.Integer(description='the organization id the user belonging to'),
+        "position": fields.String(description='user position')
     })
+
+    searchWordsIn = ns.model('searchIn', searchWordsInUser)
+    operateIn = ns.model('operateIn', {
+        "operate": fields.String(required=True, description='delete, lock|unlock, freeze|unfreeze')
+    })
+
+
+########系统用户###############################
+
+class SysUserDTO:
+    ns = Namespace('sysUser', description='sysUser related operations')
+
+    userIDsIn = ns.model('userIDsIn', IDsIn)
+
+    sysuserOut = ns.model('sysuserOut', {
+        'id': fields.Integer(description='user id'),
+        'username': fields.String(description='user username'),
+        'email': fields.String(description='user email address'),
+        'sysrole': Roleout(description='user role'),
+        'createtime': CustomDate(dt_format='str_time', description='the time of creating user'),
+        'createdbyuid': Int_to_str(description='the user id who create user'),
+        'mobile': fields.String(description='user mobile'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(description='whether user is locked'),
+        'lockedbyuid': Int_to_str(description='the user id who lock user'),
+        'lockedtime': CustomDate(dt_format='str_time', description='the time of locking user'),
+        'isfreezed': fields.Boolean(description='whether user is freezed'),
+        'freezedbyuid': Int_to_str(description='the user id who freeze user'),
+        'freezetime': CustomDate(dt_format='str_time', description='the time of freezing user'),
+        'modifiedbyuid': Int_to_str(description='the user id who modify user'),
+        'modifiedtime': CustomDate(dt_format='str_time', description='the time of modifying user')
+    })
+
+    # 输入内容需要进行验证的有：系统角色、手机号、email
+    sysuserIn = ns.model('userIn', {
+        'email': fields.String(required=True, validate=validate_email, description='user email address'),
+        'password': fields.String(required=True, description='user password'),
+        'sysrole': fields.String(required=True, validate=RoleIn(), description='user role'),
+        # 'sysrole': fields.String(required=True, validate=validate_sysrole, description='user role'),
+        'mobile': fields.String(validate=validate_mobile, description='user email address'),
+        'username': fields.String(description='user username'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(default=False, description='whether user is locked'),
+        'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
+    })
+
+    # 编辑系统用户时的输入，除ID、外键和创建时间外都可以修改
+    sysuserInUpdate = ns.model('userInUpdate', {
+        'email': fields.String(validate=validate_email, description='user email address'),
+        'password': fields.String(description='user password'),
+        'sysrole': fields.String(validate=RoleIn(), description='user role'),
+        'mobile': fields.String(validate=validate_mobile, description='user email address'),
+        'username': fields.String(description='user username'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(default=False, description='whether user is locked'),
+        'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
+    })
+
+    searchWordsIn = ns.model('searchIn', searchWordsInUser)
+
+    operateIn = ns.model('operateIn', {
+        "operate": fields.String(required=True, description='delete, lock|unlock, freeze|unfreeze')
+    })
+########系统用户###############################
+class TagUserDTO:
+    ns = Namespace('tagUser', description='sysUser related operations')
+
+    userIDsIn = ns.model('userIDsIn', IDsIn)
+
+    taguserOut = ns.model('taguserOut', {
+        'id': fields.Integer(description='user id'),
+        'username': fields.String(description='user username'),
+        'email': fields.String(description='user email address'),
+        'orgid': fields.String(description='the orgid which user belongs to'),
+        'position': fields.String(description='user position'),
+        'createtime': CustomDate(dt_format='str_time', description='the time of creating user'),
+        'createdbyuid': Int_to_str(description='the user id who create user'),
+        'mobile': fields.String(description='user mobile'),
+        'telephone': fields.String(description='user email address'),
+        'wechat_num': fields.String(description='user email address'),
+        'telecom_num': fields.String(description='user email address'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(description='whether user is locked'),
+        'lockedbyuid': Int_to_str(description='the user id who lock user'),
+        'lockedtime': CustomDate(dt_format='str_time', description='the time of locking user'),
+        'isfreezed': fields.Boolean(description='whether user is freezed'),
+        'freezedbyuid': Int_to_str(description='the user id who freeze user'),
+        'freezetime': CustomDate(dt_format='str_time', description='the time of freezing user'),
+        'modifiedbyuid': Int_to_str(description='the user id who modify user'),
+        'modifiedtime': CustomDate(dt_format='str_time', description='the time of modifying user'),
+        'representativeID': fields.String(description='the representitive id which user belongs to'),
+    })
+
+    # 输入内容需要进行验证的有：系统角色、手机号、email
+    taguserIn_sysadmin = ns.model('taguserIn_sysadmin', {
+        'email': fields.String(required=True, validate=validate_email, description='user email address'),
+        'username': fields.String(required=True, description='user username'),
+        'orgid': fields.String(required=True, description='the orgid which user belongs to'),
+        'position': fields.String(required=True, description='user position'),
+        'representativeID': fields.String(required=True, description='the representitive id which user belongs to'),
+        'mobile': fields.String(validate=validate_mobile, description='user email address'),
+        'telephone': fields.String(description='user email address'),
+        'wechat_num': fields.String(description='user email address'),
+        'telecom_num': fields.String(description='user email address'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(default=False, description='whether user is locked'),
+        'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
+    })
+
+    taguserIn_representitive = ns.model('taguserIn_representitive', {
+        'email': fields.String(required=True, validate=validate_email, description='user email address'),
+        'username': fields.String(required=True, description='user username'),
+        'orgid': fields.String(required=True, description='the orgid which user belongs to'),
+        'position': fields.String(required=True, description='user position'),
+        'mobile': fields.String(validate=validate_mobile, description='user email address'),
+        'telephone': fields.String(description='user email address'),
+        'wechat_num': fields.String(description='user email address'),
+        'telecom_num': fields.String(description='user email address'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(default=False, description='whether user is locked'),
+        'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
+    })
+
+    # 编辑系统用户时的输入，除ID、外键和创建时间外都可以修改
+    taguserInUpdate = ns.model('taguserInPute', {
+        'email': fields.String(validate=validate_email, description='user email address'),
+        'username': fields.String(description='user username'),
+        'orgid': fields.String(description='the orgid which user belongs to'),
+        'position': fields.String(description='user position'),
+        'mobile': fields.String(validate=validate_mobile, description='user email address'),
+        'telephone': fields.String(description='user email address'),
+        'wechat_num': fields.String(description='user email address'),
+        'telecom_num': fields.String(description='user email address'),
+        'comments': fields.String(description='comments about the user'),
+        'islocked': fields.Boolean(default=False, description='whether user is locked'),
+        'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
+        'representativeID': fields.String(description='the representitive id which user belongs to'),
+    })
+    searchWordsIn = ns.model('searchIn', searchWordsInUser)
+
+    operateIn = ns.model('operateIn', {
+        "operate": fields.String(required=True, description='delete, lock|unlock, freeze|unfreeze')
+    })
+#########被测用户###############################
+
 
 
 class AuthDTO:
@@ -101,7 +378,7 @@ class AuthDTO:
     auth_dto = ns.model('auth_details', {
         'email': fields.String(required=True, description='The email address'),
         'password': fields.String(required=True, description='The user password '),
-        # 'verify_code': fields.String(required=True, description='verify code string'),
+        'verify_code': fields.String(required=True, description='verify code string'),
     })
 
 
