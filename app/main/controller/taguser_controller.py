@@ -17,7 +17,7 @@ _searchWordsIn = TagUserDTO.searchWordsIn
 _operateIn = TagUserDTO.operateIn
 
 @ns.route('/')
-class SysUserList(Resource):
+class TagUserList(Resource):
     @ns.doc('list_of_registered_tagusers')
     # @admin_token_required
     @ns.marshal_list_with(_taguserOut, envelope='children')
@@ -32,7 +32,7 @@ class SysUserList(Resource):
     def post(self) -> Tuple[Dict[str, str], int]:
         """Creates a new tagUser """
         data = request.json
-        return save_new_taguser(data=data)
+        return save_new_taguser_expRepre(data=data)
 
 @ns.route('/representitive/')
 class tagUserAddByRepresentitive(Resource):
@@ -42,24 +42,7 @@ class tagUserAddByRepresentitive(Resource):
     def post(self) -> Tuple[Dict[str, str], int]:
         """Creates a new tagUser """
         data = request.json
-        return save_new_taguser(data=data)
-@ns.route('/test')
-class SysUserListTest(Resource):
-    @ns.doc('list_of_registered_tagusers')
-    # @admin_token_required
-    @ns.marshal_list_with(_taguserOut, envelope='children')
-    def get(self):
-        """List all registered tagusers"""
-        print('获取所有系统用户')
-        return get_all_tagusers_test()
-
-    @ns.expect(_taguserIn_sysadmin, validate=True)
-    @ns.response(201, 'tagUser successfully created.')
-    @ns.doc('create a new taguser')
-    def post(self) -> Tuple[Dict[str, str], int]:
-        """Creates a new tagUser """
-        data = request.json
-        return save_new_taguser(data=data)
+        return save_new_taguser_byrepresentitive(data=data)
 
 @ns.route('/<id>')
 @ns.param('id', 'The tagUser identifier')
@@ -69,19 +52,23 @@ class TagUser(Resource):
     @ns.marshal_with(_taguserOut)
     def get(self, id):
         """get a taguser given its identifier"""
-        taguser = get_a_taguser(id)
-        print('查询结果',taguser)
-        if not taguser:
-            return response_with(INVALID_INPUT_422)
-        else:
-            return taguser
+        # taguser = get_a_taguser(id)
+        # print('查询结果',taguser)
+        # if not taguser:
+        #     return response_with(INVALID_INPUT_422)
+        # else:
+        #     return taguser
+        res = get_a_taguser(id)
+        print('返回结果', res)
+        return res
 
     @ns.expect(_taguserInUpdate, validate=True)
     @ns.response(201, 'tagUser successfully modified.')
     @ns.doc("update a taguser's info")
     def put(self, id):
         """update a taguser's info, status not included"""
-        return update_a_taguser(id)
+        res = update_a_taguser(id)
+        return res
 
 
 # 过滤/查询
@@ -107,11 +94,9 @@ class PatchUsers(Resource):
     @ns.doc('operate tagusers')
     @ns.expect(_userIDsIn, validate=True)
     def patch(self, operator):
-        """modify the status of a taguser"""
+        """modify the status of tagusers"""
         userIDs = request.json
-        for id in userIDs['data']:
-            operate_a_taguser(id, operator)
-        return response_with(SUCCESS_201)
+        return operate_tagusers(userIDs['data'], operator)
 
 # 对一个用户进行操作
 @ns.route('/actionforataguser/<id>')

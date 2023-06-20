@@ -24,5 +24,5 @@ def create_app(config_name: str) -> Flask:
     flask_bcrypt.init_app(app)
     jwt.init_app(app)
     mail.init_app(app)
-    cors.init_app(app)
+    # cors.init_app(app)
     return app

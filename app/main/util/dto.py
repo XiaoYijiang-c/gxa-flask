@@ -270,7 +270,7 @@ class SysUserDTO:
         'comments': fields.String(description='comments about the user'),
         'islocked': fields.Boolean(default=False, description='whether user is locked'),
         'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
-    })
+    }, strict=True)
 
     # 编辑系统用户时的输入，除ID、外键和创建时间外都可以修改
     sysuserInUpdate = ns.model('userInUpdate', {
@@ -282,7 +282,7 @@ class SysUserDTO:
         'comments': fields.String(description='comments about the user'),
         'islocked': fields.Boolean(default=False, description='whether user is locked'),
         'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
-    })
+    }, strict=True)
 
     searchWordsIn = ns.model('searchIn', searchWordsInUser)
 
@@ -333,7 +333,7 @@ class TagUserDTO:
         'comments': fields.String(description='comments about the user'),
         'islocked': fields.Boolean(default=False, description='whether user is locked'),
         'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
-    })
+    }, strict=True)
 
     taguserIn_representitive = ns.model('taguserIn_representitive', {
         'email': fields.String(required=True, validate=validate_email, description='user email address'),
@@ -347,7 +347,7 @@ class TagUserDTO:
         'comments': fields.String(description='comments about the user'),
         'islocked': fields.Boolean(default=False, description='whether user is locked'),
         'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
-    })
+    }, strict=True)
 
     # 编辑系统用户时的输入，除ID、外键和创建时间外都可以修改
     taguserInUpdate = ns.model('taguserInPute', {
@@ -363,7 +363,7 @@ class TagUserDTO:
         'islocked': fields.Boolean(default=False, description='whether user is locked'),
         'isfreezed': fields.Boolean(default=False, description='whether user is freezed'),
         'representativeID': fields.String(description='the representitive id which user belongs to'),
-    })
+    }, strict=True)
     searchWordsIn = ns.model('searchIn', searchWordsInUser)
 
     operateIn = ns.model('operateIn', {
@@ -371,6 +371,47 @@ class TagUserDTO:
     })
 #########被测用户###############################
 
+##############黑名单###########################
+class BlackListDTO:
+    ns = Namespace('blasklist', description='blasklist related operations')
+    blackListIn = ns.model('blaklistIn',{
+        'uid': fields.String(required=True, description='the uid whose token will be add to blacklist'),
+        'comments': fields.String(description='comments about the blacklist')
+    }, strict=True)
+
+    blackListOut = ns.model('blacklistOut',{
+        'id': fields.Integer(description='blackList id'),
+        'jti': fields.String(description='JWT TOKEN id'),
+        'uid': fields.String(description='uid belongs the curretn Token'),
+        'username': fields.String(description='username belongs the curretn Token'),
+        'createdbyuid': fields.String(description='uid create the blacklist'),
+        'createusername': fields.String(description='username  create the blacklist'),
+        'operatetime': CustomDate(dt_format='str_time', description='the time of adding to blackList'),
+        'comments': fields.String(description='comments about the blacklist'),
+    })
+
+    blackListIDsIn = ns.model('blackListIDsIn', IDsIn)
+##############黑名单###########################
+
+##############中招情况###########################
+class trickSituationDTO:
+    ns = Namespace('tricksituation', description='tricksituation related operations')
+    trickSituationUpdate = ns.model('trickSituationUpdate',{
+        'comments': fields.String(description='comments about the tricksituation')
+    }, strict=True)
+    trickSituationOut = ns.model('tricksituationOut', {
+        'id': fields.Integer(description='tricksituation id'),
+        'taguid': fields.String(description='related taguser id'),
+        'username': fields.String(description='username belongs the curretn situation'),
+        'taskid': fields.String(description='related task id'),
+        'taskname': fields.String(description='related task name'),
+        'tricktime': CustomDate(dt_format='str_time', description='the time of adding to tricksituation'),
+        'action': fields.String(description='uid create the blacklist'),
+        'inputContent': fields.String(description='the content user input'),
+        'comments': fields.String(description='comments about the blacklist'),
+    })
+
+##############中招情况###########################
 
 
 class AuthDTO:

@@ -35,6 +35,7 @@ class sysUser(db.Model):
     modifiedbyuid = db.Column(db.INTEGER, db.ForeignKey('t_sysUser.id', name='fk_modified_by_uid'), comment='修改者编号')
     modify_user = db.relationship("sysUser", remote_side=[id], backref=db.backref('modify_subusers', lazy='dynamic'), foreign_keys=[modifiedbyuid])
     modifiedtime = db.Column(db.DateTime, comment='最近一次修改时间')
+    token = db.Column(db.String(265), comment='用户Token')
     @property
     def password(self):
         raise AttributeError('password: write-only field')
@@ -45,16 +46,22 @@ class sysUser(db.Model):
 
     def check_password(self, password: str) -> bool:
         return flask_bcrypt.check_password_hash(self.password_hash, password)
-
+    # 对用户Token进行解密
     def __repr__(self):
         return "<sysUser '{}'>".format(self.username)
 
     @staticmethod
     def init_table():
         rets = [
-            ('张三', 'zhangsan@qq.com' , 'caefefq34q3e', 'sysadmin', None, None, '3423423', '这是第一个用户', False, None, False, None, None, None, None),
-            ('李四', 'lisi@qq.com' ,'dqerq3q23e', 'representative', None, 1, '52253', '这是第二个用户', False, None, False, None, None, None, None),
-            ('王五', 'wangwu@qq.com' , 'dedq3rq3daedq', 'representative', None, 1, '241441', '这是第二个用户', False, None, False, None, None, None, None),
+            ('张三', 'zhangsan@qq.com' , '$2b$12$HKj/OScYXiBRa9e3LlvhzO/nE9YIsJ6Vmhh4BeIwA0DR3LfSy1FC.', 'sysadmin', None, 0, '3423423', '这是第一个用户', False, None, False, None, None, None, None),
+            ('李四', 'lisi@qq.com' ,'$2b$12$9aVtPaIhpZSP7L/cih6xvOdAUb2lkvUH0hqLhRPZiFI7eJL5Inx8e', 'representative', None, 1, '52253', '这是第二个用户', False, None, False, None, None, None, None),
+            ('王五', 'wangwu@qq.com' , '$2b$12$e0SxMsGGI57tHFISOiecTegh7N/f2vzjrqZPkpAUoxG8tJpjKKTFW', 'representative', None, 1, '241441', '这是第三个用户', False, None, False, None, None, None, None),
+            ('理厂', 'lichang@qq.com', '$2b$12$zoJ7EQGO5redHdw.wfDIBOtrecxZjdpFiF7OAIPzpxPm2UVGHue5C', 'projectadmin', None, 1, '3423423', '这是第四个用户', False, None,
+            False, None, None, None, None),
+            ('数法', 'suanfa@qq.com', '$2b$12$bFrmaJnuNieEuZU3QeBxmeEZDVN1G1pTzNqr5Ct62jiDG5sOosBIC', 'logadmin', None, 1, '52253', '这是第五个用户', False, None,
+             False, None, None, None, None),
+            ('贺藕', 'heou@qq.com', '$2b$12$IJtiav4UTAFFjoYRzyEMzOuIrAk/tNag32qSHHAweyFfhueir8YZS', 'sysadmin', None, 1, '241441', '这是第六个用户', False,
+             None, False, None, None, None, None),
         ]
         for ret in rets:
             user_obj = sysUser()

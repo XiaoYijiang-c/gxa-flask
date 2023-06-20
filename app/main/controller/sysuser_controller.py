@@ -27,45 +27,52 @@ class SysUserList(Resource):
 
     @ns.expect(_sysuserIn, validate=True)
     @ns.response(201, 'sysUser successfully created.')
+    @ns.response(403, 'permission forbidden')
     @ns.doc('create a new sysuser')
     def post(self) -> Tuple[Dict[str, str], int]:
         """Creates a new sysUser """
         data = request.json
+        print('上传的新加数据',data)
         return save_new_sysuser(data=data)
 
 
-@ns.route('/test')
-class SysUserListTest(Resource):
-    @ns.doc('list_of_registered_sysusers')
-    # @admin_token_required
-    @ns.marshal_list_with(_sysuserOut, envelope='children')
-    def get(self):
-        """List all registered sysusers"""
-        print('获取所有系统用户')
-        return get_all_sysusers_test()
-
-    @ns.expect(_sysuserIn, validate=True)
-    @ns.response(201, 'sysUser successfully created.')
-    @ns.doc('create a new sysuser')
-    def post(self) -> Tuple[Dict[str, str], int]:
-        """Creates a new sysUser """
-        data = request.json
-        return save_new_sysuser(data=data)
+# @ns.route('/test')
+# class SysUserListTest(Resource):
+#     @ns.doc('list_of_registered_sysusers')
+#     # @admin_token_required
+#     @ns.marshal_list_with(_sysuserOut, envelope='children')
+#     def get(self):
+#         """List all registered sysusers"""
+#         print('获取所有系统用户')
+#         return get_all_sysusers_test()
+#
+#     @ns.expect(_sysuserIn, validate=True)
+#     @ns.response(201, 'sysUser successfully created.')
+#     @ns.doc('create a new sysuser')
+#     def post(self) -> Tuple[Dict[str, str], int]:
+#         """Creates a new sysUser """
+#         data = request.json
+#         return save_new_sysuser(data=data)
 
 @ns.route('/<id>')
 @ns.param('id', 'The sysUser identifier')
 @ns.response(404, 'sysUser not found.')
+@ns.response(403, 'permission forbidden')
 class SysUser(Resource):
     @ns.doc('get a sysuser')
     @ns.marshal_with(_sysuserOut)
     def get(self, id):
         """get a sysuser given its identifier"""
-        sysuser = get_a_sysuser(id)
-        print('查询结果',sysuser)
-        if not sysuser:
-            return response_with(INVALID_INPUT_422)
-        else:
-            return sysuser
+        # sysuser = get_a_sysuser(id)
+        # if not sysuser:
+        #     return response_with(INVALID_INPUT_422),422
+        # else:
+        #     return sysuser
+
+        res = get_a_sysuser(id)
+        print('返回结果',res)
+        # return get_a_sysuser(id)
+        return res
 
     @ns.expect(_sysuserInUpdate, validate=True)
     @ns.response(201, 'sysUser successfully modified.')
@@ -100,9 +107,16 @@ class PatchUsers(Resource):
     def patch(self, operator):
         """modify the status of a user"""
         userIDs = request.json
-        for id in userIDs['data']:
-            operate_a_sysuser(id, operator)
-        return response_with(SUCCESS_201)
+        return operate_sysusers(userIDs['data'], operator)
+        # for id in userIDs['data']:
+        #     print('操作对象', id)
+        #     res = operate_a_sysuser(id, operator)
+        #     resbody = res.data.decode('utf-8')
+        #     resbody = eval(resbody)
+        #     print('将响应体转为字典类型')
+        #     if resbody['status']!='success':
+        #         return response_with(SERVER_ERROR_404, message='对'+str(id)+'进行'+operator+'操作失败')
+        # return response_with(SUCCESS_201)
 
 # 对一个用户进行操作
 @ns.route('/actionforasysuser/<id>')

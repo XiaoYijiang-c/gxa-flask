@@ -49,6 +49,12 @@ SERVER_ERROR_404 = {
     "message": "Resource not found"
     }
 
+PERMISSION_ERROR_403 = {
+    "http_status": 403,
+    "status": "NonPermission",
+    "message": "you don't have permission to do the operation"
+}
+
 UNAUTHORIZED_403 = {
     "http_status": 403,
     "status": "notAuthorized",
@@ -69,6 +75,7 @@ SUCCESS_204 = {
     'status': 'success'
     }
 
+import json
 
 def response_with(response, value=None, message=None,
         error=None, headers={}, pagination=None):
@@ -80,6 +87,7 @@ def response_with(response, value=None, message=None,
         result.update({'message': response['message']})
     if message is not None:
         result.update({'detail':message})
+
     result.update({'status': response['status']})
 
     if error is not None:
@@ -87,8 +95,6 @@ def response_with(response, value=None, message=None,
 
     if pagination is not None:
         result.update({'pagination': pagination})
-
     headers.update({'Access-Control-Allow-Origin': '*'})
     headers.update({'server': 'Flask REST API'})
-    print(response['http_status'])
     return make_response(jsonify(result), response['http_status'], headers)
