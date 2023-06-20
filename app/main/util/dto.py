@@ -75,6 +75,11 @@ class str_to_Int(fields.String):
         if not res:
             raise ValueError({'error': '输入编号不是数字'})
         return int(value)
+
+class id_to_name(fields.String):
+    def format(self, value):
+        print(value)
+        return value.username
 ####################@@@@@@@@@@@@自定义fields字段@@@@@@@@@@@@@@@@@@@@@@#######################
 
 ############@@@@@@@@@@@@@@@@@@@@@自定义验证字段@@@@@@@@@@@@@@@@@@@@@@@##############
@@ -127,6 +132,7 @@ def validate_mobile(Phone):
         raise ValueError({'error': (Phone, "手机号码必须全是数字")})
 import re
 def validate_email(value):
+    print('进来验证邮箱')
     if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
         raise ValueError("Invalid email address")
 ############@@@@@@@@@@@@@@@@@@@@@自定义验证字段@@@@@@@@@@@@@@@@@@@@@@@##############
@@ -247,15 +253,19 @@ class SysUserDTO:
         'sysrole': Roleout(description='user role'),
         'createtime': CustomDate(dt_format='str_time', description='the time of creating user'),
         'createdbyuid': Int_to_str(description='the user id who create user'),
+        'createusername': id_to_name(attribute='create_user', description='the user name who create user'),
         'mobile': fields.String(description='user mobile'),
         'comments': fields.String(description='comments about the user'),
         'islocked': fields.Boolean(description='whether user is locked'),
         'lockedbyuid': Int_to_str(description='the user id who lock user'),
+        'lockeusername': id_to_name(attribute='lock_user', description='the user name who lock user'),
         'lockedtime': CustomDate(dt_format='str_time', description='the time of locking user'),
         'isfreezed': fields.Boolean(description='whether user is freezed'),
         'freezedbyuid': Int_to_str(description='the user id who freeze user'),
+        'freezedusername': id_to_name(attribute='freeze_user', description='the user name who freeze user'),
         'freezetime': CustomDate(dt_format='str_time', description='the time of freezing user'),
         'modifiedbyuid': Int_to_str(description='the user id who modify user'),
+        'modifyusername': id_to_name(attribute='modify_user', description='the user name who modify user'),
         'modifiedtime': CustomDate(dt_format='str_time', description='the time of modifying user')
     })
 
@@ -303,6 +313,7 @@ class TagUserDTO:
         'position': fields.String(description='user position'),
         'createtime': CustomDate(dt_format='str_time', description='the time of creating user'),
         'createdbyuid': Int_to_str(description='the user id who create user'),
+        'createusername': id_to_name(attribute='create_sysuser', description='the user name who create user'),
         'mobile': fields.String(description='user mobile'),
         'telephone': fields.String(description='user email address'),
         'wechat_num': fields.String(description='user email address'),
@@ -310,13 +321,17 @@ class TagUserDTO:
         'comments': fields.String(description='comments about the user'),
         'islocked': fields.Boolean(description='whether user is locked'),
         'lockedbyuid': Int_to_str(description='the user id who lock user'),
+        'lockusername': id_to_name(attribute='locke_sysuser', description='the user name who lock user'),
         'lockedtime': CustomDate(dt_format='str_time', description='the time of locking user'),
         'isfreezed': fields.Boolean(description='whether user is freezed'),
         'freezedbyuid': Int_to_str(description='the user id who freeze user'),
+        'freezeusername': id_to_name(attribute='freeze_sysuser', description='the user name who freeze user'),
         'freezetime': CustomDate(dt_format='str_time', description='the time of freezing user'),
         'modifiedbyuid': Int_to_str(description='the user id who modify user'),
+        'modifyusername': id_to_name(attribute='modify_sysuser', description='the user name who modify user'),
         'modifiedtime': CustomDate(dt_format='str_time', description='the time of modifying user'),
         'representativeID': fields.String(description='the representitive id which user belongs to'),
+        'representativeusername': id_to_name(attribute='representative_sysuser', description='the user name who is the user representitive'),
     })
 
     # 输入内容需要进行验证的有：系统角色、手机号、email

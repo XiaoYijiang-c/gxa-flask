@@ -57,7 +57,7 @@ def get_a_blackList(id):
 def delete_a_blacklist_func(id):
     try:
         # 删除黑名单
-        blacklist = BlackList.query.filter_by(id=id).first()
+        blacklist = BlackList.query.filter_by(id=int(id)).first()
         print('黑名单',blacklist)
         db.session.delete(blacklist)
         db.session.commit()
@@ -72,7 +72,7 @@ def delete_a_blacklist(id):
     res = permission.getblackListsPer()
     if not res:
         return response_with(PERMISSION_ERROR_403), 403
-    return delete_a_blacklist_func(id=id)
+    return delete_a_blacklist_func(id=int(id))
 
 @jwt_required()
 def delete_blacklists(IDs):
@@ -81,7 +81,7 @@ def delete_blacklists(IDs):
         return response_with(PERMISSION_ERROR_403), 403
 
     for obj_id in IDs:
-        resp = delete_a_blacklist_func(id=obj_id)
+        resp = delete_a_blacklist_func(id=int(obj_id))
         resbody = resp.data.decode('utf-8')
         resbody = eval(resbody)
         if resbody['status'] != 'success':

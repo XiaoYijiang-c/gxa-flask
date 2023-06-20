@@ -51,7 +51,7 @@ def get_a_tricksituation(id):
             return response_with(PERMISSION_ERROR_403, message='当前系统用户没有查看权限')
         query = db.session.query(trickSituation, targetUser.username).join(targetUser,
                                                                            targetUser.id == trickSituation.taguid).filter(
-            trickSituation.id == id)
+            trickSituation.id == int(id))
         tricksituation = query.all()
         return tricksituation
 
@@ -70,7 +70,7 @@ def update_a_tricksituation(id):
         if int(id) not in resData:
             return response_with(PERMISSION_ERROR_403, message='当前系统用户没有查看权限')
         # 编辑用户
-        tmp_tricksituation = trickSituation.query.filter_by(id=id).first()
+        tmp_tricksituation = trickSituation.query.filter_by(id=int(id)).first()
         if not tmp_tricksituation:
             return response_with(ITEM_NOT_EXISTS, message='中招记录不存在')
         update_val = request.json

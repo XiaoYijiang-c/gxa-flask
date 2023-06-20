@@ -113,13 +113,12 @@ def operate_tagusers(IDList, operator):
         db.session.commit()
         return response_with(SUCCESS_201)
 
-def check_input_update(inputData):
+def check_input_update(inputData, id):
     res = True
     if 'email' in inputData.keys():
         taguser = targetUser.query.filter_by(email=inputData['email']).first()
         sysuser = sysUser.query.filter_by(email=inputData['email']).first()
-        id = get_jwt_identity()
-        if (taguser and taguser.id != id) or sysuser:
+        if (taguser and taguser.id != int(id)) or sysuser:
             res = False
     if 'orgid' in inputData.keys():
         # 获取所有组织ID
@@ -138,7 +137,7 @@ def check_input_update(inputData):
     return res, inputData
 
 @jwt_required()
-def update_a_taguser(id):
+def update_a_taguser( id ):
     repIDs_list = getRepresentitiveIDs_currentProjAdmin()
     repIDs_sysadmin_list = getRepreIDs_sysAdmin()
     IDs = repIDs_list + repIDs_sysadmin_list
@@ -158,7 +157,8 @@ def update_a_taguser(id):
             return response_with(ITEM_LOCKED_400)
         update_val = request.json
         # 需验证进行编辑的数据是否正确，主要是email
-        resp, update_val = check_input_update(update_val)
+        resp, update_val = check_input_update(update_val, id=id)
+        print('更新检验', resp)
         if not resp:
             response_object = {
                 'status': 'fail',
@@ -179,7 +179,7 @@ def update_a_taguser(id):
 # 验证相应字段
 def check_input(inputData):
     id = get_jwt_identity()
-    sysuser = sysUser.query.filter_by(id=id).first()
+    sysuser = sysUser.query.filter_by(id=int(id)).first()
     if 'username' not in inputData.keys():
         # 将用户邮箱默认为用户名
         inputData['username'] = inputData['email']
@@ -281,7 +281,7 @@ def createTreeFortaguser():
             exec(strcode)
 
 def get_tagusers_byRole(id):
-    sysuser = sysUser.query.filter_by(id=id).first()
+    sysuser = sysUser.query.filter_by(id=int(id)).first()
     if sysuser.sysrole == 'sysadmin':
         # 获取所有测试用户
         resData = targetUser.query.all()
@@ -293,10 +293,10 @@ def get_tagusers_byRole(id):
         repIDs_list = getRepresentitiveIDs_currentProjAdmin()
         repIDs_sysadmin_list = getRepreIDs_sysAdmin()
         IDs_List = repIDs_list+sysIDs_list+repIDs_sysadmin_list
-        resData = targetUser.query.filter(or_(targetUser.createdbyuid==id, targetUser.createdbyuid.in_(IDs_List))).all()
+        resData = targetUser.query.filter(or_(targetUser.createdbyuid==int(id), targetUser.createdbyuid.in_(IDs_List))).all()
     elif sysuser.sysrole == 'representative':
         # 对接人ID为当前客户代表的被测用户
-        resData = targetUser.query.filter(targetUser.representativeID == id).all()
+        resData = targetUser.query.filter(targetUser.representativeID == int(id)).all()
     else:
         resData = []
     return resData
@@ -340,7 +340,7 @@ def save_changes(data: targetUser) -> None:
     db.session.commit()
 
 def get_sysusers_byRole_forsearch(id):
-    sysuser = sysUser.query.filter_by(id=id).first()
+    sysuser = sysUser.query.filter_by(id=int(id)).first()
     if sysuser.sysrole == 'sysadmin':
         # 获取所有测试用户
         resData = targetUser.query
@@ -352,10 +352,10 @@ def get_sysusers_byRole_forsearch(id):
         repIDs_list = getRepresentitiveIDs_currentProjAdmin()
         repIDs_sysadmin_list = getRepreIDs_sysAdmin()
         IDs_List = repIDs_list + sysIDs_list + repIDs_sysadmin_list
-        resData = targetUser.query.filter(or_(targetUser.createdbyuid == id, targetUser.createdbyuid.in_(IDs_List)))
+        resData = targetUser.query.filter(or_(targetUser.createdbyuid == int(id), targetUser.createdbyuid.in_(IDs_List)))
     elif sysuser.sysrole == 'representative':
         # 对接人ID为当前客户代表的被测用户
-        resData = targetUser.query.filter(targetUser.representativeID == id)
+        resData = targetUser.query.filter(targetUser.representativeID == int(id))
 
     return resData
 
@@ -394,18 +394,18 @@ def search_for_tagusers(data):
         print('无freezedtime')
     try:
         if data['representativeID']:
-            tmp_tagusers = tmp_tagusers.filter(targetUser.representativeID==data['representativeID'])
+            tmp_tagusers = tmp_tagusers.filter(targetUser.representativeID == int(data['representativeID']))
     except:
         print('无representativeID')
     try:
         if data['status_freeze']:
-            tmp_tagusers = tmp_tagusers.filter(targetUser.isfreezed==True)
+            tmp_tagusers = tmp_tagusers.filter(targetUser.isfreezed == True)
     except:
         print('无status_freeze')
     try:
         print('status_lock',data['status_lock'])
         if data['status_lock']:
-            tmp_tagusers = tmp_tagusers.filter(targetUser.islocked==True)
+            tmp_tagusers = tmp_tagusers.filter(targetUser.islocked == True)
     except:
         print('无status_lock')
     # createdbyuid
@@ -430,5 +430,10 @@ def search_for_tagusers(data):
             tmp_tagusers = tmp_tagusers.filter_by(createdbyuid=int(data['lockedbyuid']))
     except:
         print('无lockedbyuid')
+    try:
+        if data['comments']:
+            tmp_tagusers = tmp_tagusers.filter(targetUser.comments.like("%" + data['comments'] + "%"))
+    except:
+        print('无comments')
     return tmp_tagusers.all(), 201
 

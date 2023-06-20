@@ -132,13 +132,13 @@ def operate_sysusers(IDs, operator):
         db.session.commit()
         return response_with(SUCCESS_201)
 
-def check_input_update(inputData):
+def check_input_update(inputData, id):
     res = True
     if 'email' in inputData.keys():
         sysuser = sysUser.query.filter_by(email=inputData['email']).first()
         taguser = targetUser.query.filter_by(email=inputData['email']).first()
-        id = get_jwt_identity()
-        if (sysuser and sysuser.id != id) or taguser:
+        print(sysuser and sysuser.id != int(id))
+        if (sysuser and sysuser.id != int(id)) or taguser:
             res = False
     if 'sysrole' in inputData.keys():
         inputData['sysrole'] = role_change(inputData['sysrole'])
@@ -148,6 +148,7 @@ def check_input_update(inputData):
 
 @jwt_required()
 def update_a_sysuser(id):
+    print("here")
     IDsList = getIDSofSysAdmin()
     res, tmp_sysuser = permission.getSysuserPer(id, IDsList=IDsList)
     print('权限结果', res)
@@ -157,16 +158,22 @@ def update_a_sysuser(id):
         return response_with(INVALID_INPUT_422, message='输入内容无效'), 422
     else:
         # tmp_sysuser = sysUser.query.filter_by(id=id).first()
+        print('目标用户', tmp_sysuser)
         if not tmp_sysuser:
+            print('用户不存在')
             return response_with(ITEM_NOT_EXISTS, message='用户不存在')
         if tmp_sysuser.isfreezed == True:
+            print('用户被冻结')
             return response_with(ITEM_FREEZED_400, message='用户被冻结')
         elif tmp_sysuser.islocked == True:
+            print('用户被锁住')
             return response_with(ITEM_LOCKED_400, message='用户被锁住')
         update_val = request.json
+        print('待更新数据', update_val)
         # 需验证进行编辑的数据是否正确，主要是email
-        res, update_val = check_input_update(update_val)
-        if not res:
+        resp, update_val = check_input_update(update_val, id)
+        print('经过检查的待更新用户', update_val, resp)
+        if not resp:
             response_object = {
                 'status': 'fail',
                 'message': 'User already exists. ',
@@ -284,16 +291,16 @@ def createTreeForSysuser():
 
 
 def get_sysusers_byRole(id):
-    sysuser = sysUser.query.filter_by(id=id).first()
+    sysuser = sysUser.query.filter_by(id=int(id)).first()
     if sysuser.sysrole == 'sysadmin':
         # 返回所有系统用户数据，除 非其创建的系统用户外
-        resList = sysUser.query.filter(and_(sysUser.createdbyuid!=0,or_(sysUser.createdbyuid==id, sysUser.sysrole!='sysadmin'))).all()
+        resList = sysUser.query.filter(and_(sysUser.createdbyuid!=0,or_(sysUser.createdbyuid==int(id), sysUser.sysrole!='sysadmin'))).all()
         # resList = sysUser.query.all()
     elif sysuser.sysrole == 'projectadmin':
         # 返回系统创建的客户代表和当前项目管理员创建的客户代表
         # 获取所有系统用户的ID
         IDs_list = getIDSofSysAdmin()
-        resList = sysUser.query.filter(or_(and_(sysUser.createdbyuid==id, sysUser.sysrole=='representative'), and_(sysUser.createdbyuid.in_(IDs_list), sysUser.sysrole=='representative'))).all()
+        resList = sysUser.query.filter(or_(and_(sysUser.createdbyuid==int(id), sysUser.sysrole=='representative'), and_(sysUser.createdbyuid.in_(IDs_list), sysUser.sysrole=='representative'))).all()
     else:
         resList = []
     return resList
@@ -354,15 +361,15 @@ def save_changes(data: sysUser) -> None:
     db.session.commit()
 
 def get_sysusers_byRole_forsearch(id):
-    sysuser = sysUser.query.filter_by(id=id).first()
+    sysuser = sysUser.query.filter_by(id=int(id)).first()
     if sysuser.sysrole == 'sysadmin':
         # 返回所有系统用户数据，除 非其创建的系统用户外
-        resList = sysUser.query.filter(and_(sysUser.createdbyuid!=0,or_(sysUser.createdbyuid==id, sysUser.sysrole!='sysadmin')))
+        resList = sysUser.query.filter(and_(sysUser.createdbyuid!=0,or_(sysUser.createdbyuid==int(id), sysUser.sysrole!='sysadmin')))
     elif sysuser.sysrole == 'projectadmin':
         # 返回系统创建的客户代表和当前项目管理员创建的客户代表
         # 获取所有系统用户的ID
         IDs_list = getIDSofSysAdmin()
-        resList = sysUser.query.filter(or_(and_(sysUser.createdbyuid==id, sysUser.sysrole=='representative'), and_(sysUser.createdbyuid.in_(IDs_list), sysUser.sysrole=='representative')))
+        resList = sysUser.query.filter(or_(and_(sysUser.createdbyuid==int(id), sysUser.sysrole=='representative'), and_(sysUser.createdbyuid.in_(IDs_list), sysUser.sysrole=='representative')))
     return resList
 
 

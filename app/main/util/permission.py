@@ -6,7 +6,7 @@ from app.main.model.tricksituation import trickSituation
 def util_sysUserPer(get_id, IDsList, sysrole, id):
     try:
         print('角色', sysrole)
-        get_sysuser = sysUser.query.filter_by(id=get_id).first()
+        get_sysuser = sysUser.query.filter_by(id=int(get_id)).first()
         if sysrole == 'sysadmin' or (((get_sysuser.createdbyuid in IDsList and get_sysuser.sysrole == 'representative') or get_sysuser.createdbyuid == id) and sysrole == 'projectadmin'):
             return 1, get_sysuser
         else:
@@ -65,7 +65,7 @@ class permission:
 def utilPerForATaguser(obj_id, IDs, sysrole, id):
     print('进工具')
     try:
-        taguser_obj = targetUser.query.filter_by(id=obj_id).first()
+        taguser_obj = targetUser.query.filter_by(id=int(obj_id)).first()
         print('对象',taguser_obj, taguser_obj.createdbyuid)
         print('角色',sysrole, id)
         if sysrole == 'sysadmin':
