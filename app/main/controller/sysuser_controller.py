@@ -5,6 +5,7 @@ from ..util.response_tip import *
 from ..util.dto import SysUserDTO
 from ..service.sysuser_services import *
 from typing import Dict, Tuple
+from app.main.util.validate import validaet_input_sysuser
 
 
 ns = SysUserDTO.ns
@@ -33,6 +34,9 @@ class SysUserList(Resource):
         """Creates a new sysUser """
         data = request.json
         print('上传的新加数据',data)
+        res , mesg = validaet_input_sysuser(data)
+        if not res:
+            return response_with(INVALID_INPUT_422, message=mesg)
         return save_new_sysuser(data=data)
 
 

@@ -5,7 +5,7 @@ from ..util.response_tip import *
 from ..util.dto import TagUserDTO
 from ..service.taguser_services import *
 from typing import Dict, Tuple
-
+from app.main.util.validate import validate_input_taguser
 
 ns = TagUserDTO.ns
 _taguserIn_sysadmin = TagUserDTO.taguserIn_sysadmin
@@ -32,6 +32,9 @@ class TagUserList(Resource):
     def post(self) -> Tuple[Dict[str, str], int]:
         """Creates a new tagUser """
         data = request.json
+        res, data = validate_input_taguser(data)
+        if not res:
+            return response_with(INVALID_INPUT_422, message=data)
         return save_new_taguser_expRepre(data=data)
 
 @ns.route('/representitive/')
@@ -42,6 +45,9 @@ class tagUserAddByRepresentitive(Resource):
     def post(self) -> Tuple[Dict[str, str], int]:
         """Creates a new tagUser """
         data = request.json
+        res, data = validate_input_taguser(data)
+        if not res:
+            return response_with(INVALID_INPUT_422, message=data)
         return save_new_taguser_byrepresentitive(data=data)
 
 @ns.route('/<id>')
