@@ -389,7 +389,6 @@ class BlackListDTO:
         'operatetime': CustomDate(dt_format='str_time', description='the time of adding to blackList'),
         'comments': fields.String(description='comments about the blacklist'),
     })
-
     blackListIDsIn = ns.model('blackListIDsIn', IDsIn)
 ##############黑名单###########################
 

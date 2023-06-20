@@ -25,10 +25,10 @@ def getRepreIDs_sysAdmin():
     IDs = sysUser.query.filter(and_(sysUser.sysrole == 'representative', sysUser.createdbyuid.in_(sysadminIDs))).with_entities(sysUser.id).all()
     IDs_list = [ID[0] for ID in IDs]
     return IDs_list
-def add_to_blacklist(token):
+def add_to_blacklist(tmp_sysuser):
     # 如用户被删除，则将其Token加入黑名单
-    print('Token', token)
-    save_token(token)
+    print('Token', tmp_sysuser.token)
+    save_token(tmp_sysuser)
 
 
 
@@ -62,7 +62,7 @@ def operate_a_sysuser_func(tmp_sysuser,operator):
             tmp_sysuser.isfreezed = True
             tmp_sysuser.freezetime = datetime.now()
             # 用户被冻结后需要将其Token加入黑名单
-            add_to_blacklist(tmp_sysuser.token)
+            add_to_blacklist(tmp_sysuser)
         else:
             if tmp_sysuser.islocked:
                 if operator != "unlock":
@@ -79,7 +79,7 @@ def operate_a_sysuser_func(tmp_sysuser,operator):
                 elif operator == "delete":
                     db.session.delete(tmp_sysuser)
                     # 用户被冻结后需要将其Token加入黑名单
-                    add_to_blacklist(tmp_sysuser.token)
+                    add_to_blacklist(tmp_sysuser)
                 elif operator == "unlock":
                     pass
                 else:
@@ -439,5 +439,11 @@ def search_for_sysusers(data):
             tmp_sysusers = tmp_sysusers.filter_by(createdbyuid=int(data['lockedbyuid']))
     except:
         print('无lockedbyuid')
+    try:
+        if data['comments']:
+            data['comments'] = role_change(data['comments'])
+            tmp_sysusers = tmp_sysusers.filter(sysUser.comments.like("%" + data['comments'] + "%"))
+    except:
+        print('无comments')
     return tmp_sysusers.all(), 201
 

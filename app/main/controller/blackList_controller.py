@@ -33,13 +33,14 @@ class BlackLists(Resource):
     @ns.response(201, 'sysUser successfully delete.')
     @ns.response(403, 'permission forbidden')
     @ns.doc('delete a new blackList')
-    def delete(self):
+    def patch(self):
         blackListIDs = request.json
-        for id in blackListIDs['data']:
-            res = delete_a_blacklist(id)
-            if res.status!="success":
-                return response_with(SERVER_ERROR_404)
-        return response_with(SUCCESS_201)
+        # for id in blackListIDs['data']:
+        #     res = delete_a_blacklist(id)
+        #     if res.status!="success":
+        #         return response_with(SERVER_ERROR_404)
+        # return response_with(SUCCESS_201)
+        return delete_blacklists(blackListIDs['data'])
 @ns.route('/<id>')
 @ns.param('id', 'The blackList identifier')
 @ns.response(404, 'blackList not found.')

@@ -1,5 +1,6 @@
 from flask_jwt_extended import get_jwt_identity, get_jwt
 from app.main.model.newuser import sysUser, targetUser
+from app.main.model.tricksituation import trickSituation
 
 
 def util_sysUserPer(get_id, IDsList, sysrole, id):
@@ -139,6 +140,7 @@ class permissionForTrickSituation:
                 resData = targetUser.query.filter(targetUser.representativeID == id).with_entities(targetUser.id).all()
             else:
                 return 2, None
-            return 1, resData
+            IDs_list = [ID[0] for ID in resData]
+            return 1, IDs_list
         except:
             0, None

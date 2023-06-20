@@ -24,7 +24,8 @@ def save_new_blackList(data):
     id = data.get('uid')
     try:
         sysuser = sysUser.query.filter_by(id=int(id)).first()
-        save_token(sysuser.token)
+        print('被测用户',sysuser)
+        save_token(sysuser, comments=data['comments'])
         return response_with(SUCCESS_201)
     except Exception as e:
         return response_with(ITEM_NOT_EXISTS)
@@ -35,7 +36,7 @@ def get_all_blackLists():
     if not res:
         return response_with(PERMISSION_ERROR_403),403
     try:
-        blackLists = db.session.query(BlackList.id, BlackList.jti, BlackList.uid, sysUser.username, BlackList.createdbyuid, sysUser.username, BlackList.operatetime).join(BlackList, sysUser.id==BlackList.uid).all()
+        blackLists = db.session.query(BlackList.id, BlackList.jti, BlackList.uid, sysUser.username, BlackList.createdbyuid, sysUser.username, BlackList.operatetime, BlackList.comments).join(BlackList, sysUser.id==BlackList.uid).all()
         return blackLists
     except:
         return response_with(ITEM_NOT_EXISTS),400
@@ -53,11 +54,7 @@ def get_a_blackList(id):
         print(e)
         return response_with(ITEM_NOT_EXISTS)
 
-@jwt_required()
-def delete_a_blacklist(id):
-    res = permission.getblackListsPer()
-    if not res:
-        return response_with(PERMISSION_ERROR_403), 403
+def delete_a_blacklist_func(id):
     try:
         # 删除黑名单
         blacklist = BlackList.query.filter_by(id=id).first()
@@ -70,6 +67,24 @@ def delete_a_blacklist(id):
         print(e)
         return response_with(ITEM_NOT_EXISTS)
 
-def save_changes(data: BlackList) -> None:
-    db.session.add(data)
+@jwt_required()
+def delete_a_blacklist(id):
+    res = permission.getblackListsPer()
+    if not res:
+        return response_with(PERMISSION_ERROR_403), 403
+    return delete_a_blacklist_func(id=id)
+
+@jwt_required()
+def delete_blacklists(IDs):
+    res = permission.getblackListsPer()
+    if not res:
+        return response_with(PERMISSION_ERROR_403), 403
+
+    for obj_id in IDs:
+        resp = delete_a_blacklist_func(id=obj_id)
+        resbody = resp.data.decode('utf-8')
+        resbody = eval(resbody)
+        if resbody['status'] != 'success':
+            return resp
     db.session.commit()
+    return response_with(SUCCESS_201)

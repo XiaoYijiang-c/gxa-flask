@@ -61,6 +61,7 @@ def operate_a_taguser_func(tmp_taguser,operator):
                     tmp_taguser.lockedtime = datetime.now()
                 elif operator == "delete":
                     db.session.delete(tmp_taguser)
+                    # 将该普通用户下的中招记录也删除
                 elif operator == "unlock":
                     pass
                 else:

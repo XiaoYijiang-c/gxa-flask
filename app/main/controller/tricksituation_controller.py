@@ -15,8 +15,8 @@ class trickSituationLists(Resource):
     # @admin_token_required
     @ns.marshal_list_with(_trickSituationOut, envelope='children')
     def get(self):
-        """List all blackList"""
-        print('获取所有黑名单用户')
+        """List all trickSituation"""
+        print('获取所有中招情况记录')
         return get_all_tricksituations()
 
 @ns.route('/<id>')

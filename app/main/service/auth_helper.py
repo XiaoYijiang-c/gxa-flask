@@ -48,18 +48,32 @@ def get_piccatch():
 
 from app.main.model.blacklist import  BlackList
 from datetime import datetime
-from flask_jwt_extended import get_jwt_identity, get_jti, decode_token
+from flask_jwt_extended import get_jwt_identity, get_jti, decode_token, jwt_required
 
 
+from app.main.util.ext import save_changes
 # 将用户Token加入黑名单
-def save_token(token):
-    jti = get_jti(token)
+def save_token(sysuser,token=None, comments=None):
+    revoked_token = BlackList()
+    if not token:
+        jti = get_jti(sysuser.token)
+    else:
+        jti = get_jti(token)
     id = get_jwt_identity()
     entertime = datetime.now()
     createdbyuid = get_jwt_identity()
-    revoked_token = BlackList(jti=jti, operatetime=entertime, uid=id, createdbyuid=createdbyuid)
-    db.session.add(revoked_token)
-    db.session.commit()
+    new_data = {
+        'jti': jti,
+        'operatetime': entertime,
+        'uid': sysuser.id,
+        'createdbyuid': id,
+        'comments':comments
+    }
+    print('字典数据',new_data)
+    wj2o(revoked_token, new_data)
+    save_changes(revoked_token)
+    # revoked_token = BlackList(jti=jti, operatetime=entertime, uid=id, createdbyuid=createdbyuid)
+    print('对象',revoked_token)
 
 # 判断用户Token是否在黑名单中
 def is_token_revoked(decoded_token):
@@ -160,6 +174,7 @@ class Auth:
             return response_object, 500
 
     @staticmethod
+    @jwt_required()
     def logout_user(data: str) -> Tuple[Dict[str, str], int]:
         if data:
             auth_token = data.split(" ")[1]
@@ -170,7 +185,9 @@ class Auth:
             print('这是自己自带的？',resp)
             if not isinstance(resp, str):
                 # mark the token as blacklisted
-                save_token(token=auth_token)
+                id = get_jwt_identity()
+                sysuser = sysUser.query.filter_by(id=id).first()
+                save_token(sysuser=sysuser, token=auth_token)
                 response_object = {
                     'status': 'sucess',
                     'message': resp

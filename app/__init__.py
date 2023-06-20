@@ -7,6 +7,7 @@ from .main.controller.auth_controller import ns as auth_ns
 from .main.controller.sysuser_controller import ns as sys_ns
 from .main.controller.taguser_controller import ns as tag_ns
 from .main.controller.blackList_controller import ns as blackList_ns
+from .main.controller.tricksituation_controller import ns as tricksituation_ns
 
 api_blueprint = Blueprint('flask-restx', __name__)
 authorizations = {
@@ -32,3 +33,4 @@ api.add_namespace(auth_ns, path='/auth')
 api.add_namespace(sys_ns, path='/sysuser')
 api.add_namespace(tag_ns, path='/taguser')
 api.add_namespace(blackList_ns, path='/blacklist')
+api.add_namespace(tricksituation_ns, path='/tricksituation')
